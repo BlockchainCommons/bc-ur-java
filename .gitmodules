@@ -1,0 +1,3 @@
+[submodule "deps/bc-ur"]
+	path = deps/bc-ur
+	url = git@github.com:BlockchainCommons/bc-ur.git
