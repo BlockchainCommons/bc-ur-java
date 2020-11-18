@@ -13,8 +13,6 @@ import java.io.InputStream;
 
 class LibraryLoader {
 
-    private static final String SODIUM_LIBRARY = "sodiumjni";
-
     enum CPU {
         /**
          * 32 bit legacy Intel
@@ -175,12 +173,8 @@ class LibraryLoader {
                 outputStream.close();
                 outputStream = null;
 
-                try {
-                    System.load(tempFile.getAbsolutePath());
-                    tempFile.delete();
-                } catch (Throwable e) {
-                    System.loadLibrary(SODIUM_LIBRARY);
-                }
+                System.load(tempFile.getAbsolutePath());
+                tempFile.delete();
             } catch (IOException e) {
                 throw new IOException("Failed to create temporary file with " + e.getMessage());
             } finally {
