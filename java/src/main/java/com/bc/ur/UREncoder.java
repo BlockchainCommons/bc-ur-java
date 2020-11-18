@@ -33,4 +33,11 @@ public class UREncoder extends NativeWrapper {
     public String nextPart() {
         return BCUR.UREncoder_next_part(ptrObj);
     }
+
+
+    @Override
+    public void close() throws Exception {
+        if (isClosed() || !BCUR.UREncoder_dispose(ptrObj)) return;
+        ptrObj = null;
+    }
 }

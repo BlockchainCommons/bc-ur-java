@@ -124,6 +124,7 @@ public:
         for (jsize i = 0; i < jarray_len; i++) {
             vector.emplace_back(arrayPtr[i]);
         }
+        delete arrayPtr;
         return vector;
     }
 
@@ -402,6 +403,7 @@ Java_com_bc_ur_BCUR_UR_1get_1message(JNIEnv *env, jclass clazz, jobject ur) {
         auto end = cbor.end();
         ByteVector msg;
         CborLite::decodeBytes(i, end, msg);
+        delete cur;
         return PrimitiveJni::to_jbyteArray(env, msg);
     });
 }
@@ -417,6 +419,7 @@ Java_com_bc_ur_BCUR_UREncoder_1encode(JNIEnv *env, jclass clazz, jobject ur) {
         auto cur = URJni::to_c_UR(env, ur);
         auto result = UREncoder::encode(*cur);
         auto jresult = env->NewStringUTF((&result)->c_str());
+        delete cur;
         return jresult;
     });
 }
@@ -727,6 +730,35 @@ Java_com_bc_ur_BCUR_URDecoder_1receive_1part(JNIEnv *env, jclass clazz, jobject 
         auto result = (jboolean) obj->receive_part(cs);
         return result;
     });
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_bc_ur_BCUR_URDecoder_1dispose(JNIEnv *env, jclass clazz, jobject decoder) {
+    if (decoder == nullptr) {
+        IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
+        return JNI_FALSE;
+    }
+
+    return safetyCall(env, JNI_FALSE, [&]() {
+        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
+        delete obj;
+        return true;
+    });
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_bc_ur_BCUR_UREncoder_1dispose(JNIEnv *env, jclass clazz, jobject encoder) {
+    if (encoder == nullptr) {
+        IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
+        return JNI_FALSE;
+    }
+
+    return safetyCall(env, JNI_FALSE, [&]() {
+        auto *obj = (UREncoder *) ObjectJni::get(env, encoder);
+        delete obj;
+        return true;
+    });
+
 }
 #ifdef __cplusplus
 }

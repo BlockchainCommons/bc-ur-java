@@ -57,4 +57,10 @@ public class URDecoder extends NativeWrapper {
     public boolean receivePart(String s) {
         return BCUR.URDecoder_receive_part(ptrObj, s);
     }
+
+    @Override
+    public void close() throws Exception {
+        if (isClosed() || !BCUR.URDecoder_dispose(ptrObj)) return;
+        ptrObj = null;
+    }
 }

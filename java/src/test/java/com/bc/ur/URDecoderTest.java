@@ -23,26 +23,51 @@ public class URDecoderTest {
     }
 
     @Test
-    public void testDecodeMultiParts() {
+    public void testDecodeMultiParts() throws Throwable {
         UR ur = UR.create(32767, "Wolf");
-        UREncoder encoder = new UREncoder(ur, 1000, 100, 10);
-        URDecoder decoder = new URDecoder();
-        do {
-            String part = encoder.nextPart();
-            decoder.receivePart(part);
-        }while (!decoder.isComplete());
 
-        // make sure resultUR return exact UR entered before
-        UR resultUR = decoder.resultUR();
-        assertEquals(ur.getType(), resultUR.getType());
-        assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(ur.getCbor()), TestUtils.toTypedArray(resultUR.getCbor())));
+        UREncoder refEncoder;
+        URDecoder refDecoder;
 
-        // make sure getting resultError throw IllegalStateException
+        try (UREncoder encoder = new UREncoder(ur, 1000, 100, 10);
+             URDecoder decoder = new URDecoder()) {
+            refEncoder = encoder;
+            refDecoder = decoder;
+            do {
+                String part = encoder.nextPart();
+                decoder.receivePart(part);
+            } while (!decoder.isComplete());
+
+            // make sure resultUR return exact UR entered before
+            UR resultUR = decoder.resultUR();
+            assertEquals(ur.getType(), resultUR.getType());
+            assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(ur.getCbor()), TestUtils.toTypedArray(resultUR.getCbor())));
+
+            // make sure getting resultError throw IllegalStateException
+            try {
+                decoder.resultError();
+                throw new Throwable("test failed due to checking resultError");
+            } catch (IllegalStateException e) {
+                assertTrue(true);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Test failed due to " + e.getMessage());
+        }
+
+        // make sure encoder/decoder is closed
+        assertTrue(refEncoder.isClosed());
+        assertTrue(refDecoder.isClosed());
+
         try {
-            decoder.resultError();
-            throw new RuntimeException("test failed due to checking resultError");
-        } catch (IllegalStateException e) {
-            assertTrue(true);
+            refEncoder.nextPart();
+            throw new RuntimeException("test failed since encoder has not been disposed");
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            refDecoder.expectedType();
+            throw new RuntimeException("test failed since decoder has not been disposed");
+        } catch (IllegalArgumentException ignore) {
         }
     }
 

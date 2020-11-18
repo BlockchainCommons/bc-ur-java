@@ -23,26 +23,48 @@ class URDecoderTest {
     @Test
     fun testDecodeMultiParts() {
         val ur = UR.create(32767, "Wolf")
+
         val encoder = UREncoder(ur, 1000, 100, 10)
         val decoder = URDecoder()
-        do {
-            val part = encoder.nextPart()
-            decoder.receivePart(part)
-        } while (!decoder.isComplete)
 
-        // make sure resultUR return exact UR entered before
-        val resultUR = decoder.resultUR()
-        assertEquals(ur.type, resultUR.type)
-        assertTrue(
-            ur.cbor.toTypedArray().contentDeepEquals(resultUR.cbor.toTypedArray())
-        )
+        encoder.use { e ->
+            decoder.use { d ->
+                do {
+                    val part = e.nextPart()
+                    d.receivePart(part)
+                } while (!d.isComplete)
 
-        // make sure getting resultError throw IllegalStateException
+                // make sure resultUR return exact UR entered before
+                val resultUR = d.resultUR()
+                assertEquals(ur.type, resultUR.type)
+                assertTrue(
+                    ur.cbor.toTypedArray().contentDeepEquals(resultUR.cbor.toTypedArray())
+                )
+
+                // make sure getting resultError throw IllegalStateException
+                try {
+                    d.resultError()
+                    throw Throwable("test failed due to checking resultError")
+                } catch (e: IllegalStateException) {
+                    assertTrue(true)
+                }
+            }
+        }
+
+        // make sure encoder/decoder is closed
+        assertTrue(encoder.isClosed)
+        assertTrue(decoder.isClosed)
+
         try {
-            decoder.resultError()
-            throw RuntimeException("test failed due to checking resultError")
-        } catch (e: IllegalStateException) {
-            assertTrue(true)
+            encoder.nextPart()
+            throw RuntimeException("test failed since encoder has not been disposed")
+        } catch (ignore: IllegalArgumentException) {
+        }
+
+        try {
+            decoder.expectedType()
+            throw RuntimeException("test failed since decoder has not been disposed")
+        } catch (ignore: IllegalArgumentException) {
         }
     }
 
