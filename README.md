@@ -26,6 +26,55 @@ This  `Blockchain Commons UR Java library` project is either derived from or was
 
 - [blockchain-commons/bc-ur/](https://github.com/BlockchainCommons/bc-ur) — Repo that is UR Reference Implementation in C++, from [Blockchain-Commons](https://github.com/BlockchainCommons).
 
+## Usage
+Encode single part
+```java
+UR ur = UR.create(50, "Wolf");
+String encoded = UREncoder.encode(ur); // "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
+```
+
+Encode multi parts
+```java
+UR ur = UR.create(256, "Wolf");
+
+// try-with-resource to make sure encoder is closed as expectation to avoid memory leak
+try (UREncoder encoder = new UREncoder(ur, 30, 0, 10)) {
+    int segNum = (int) encoder.getSeqNum();
+    String[] parts = new String[segNum];
+    for (int i = 0; i < segNum; i++) {
+        parts[i] = encoder.nextPart();
+    }
+} catch (Exception e) {
+    // error goes here
+}
+```
+
+Decode single part
+```java
+String encoded = "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch";
+UR ur = URDecoder.decode(encoded);
+```
+
+Decode multi parts
+```java
+// simulate encoder/decoder working together
+UR ur = UR.create(32767, "Wolf");
+
+// try-with-resource to make sure encoder is closed as expectation to avoid memory leak
+try (UREncoder encoder = new UREncoder(ur, 1000, 100, 10);
+    URDecoder decoder = new URDecoder()) {
+    do {
+        String part = encoder.nextPart();
+        decoder.receivePart(part);
+    } while (!decoder.isComplete());
+
+    // received UR after decoding
+    UR resultUR = decoder.resultUR();
+} catch (Exception e) {
+    // error goes here
+}
+```
+
 ## Financial Support
 
 `Blockchain Commons UR Java library` is a project of [Blockchain Commons](https://www.blockchaincommons.com/). We are proudly a "not-for-profit" social benefit corporation committed to open source & open development. Our work is funded entirely by donations and collaborative partnerships with people like you. Every contribution will be spent on building open tools, technologies, and techniques that sustain and advance blockchain and internet security infrastructure and promote an open web.
