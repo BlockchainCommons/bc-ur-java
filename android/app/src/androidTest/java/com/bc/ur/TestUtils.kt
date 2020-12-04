@@ -29,3 +29,16 @@ inline fun <T : AutoCloseable?, R> T.use(block: (T) -> R): R {
         }
     }
 }
+
+inline fun <reified T : Throwable> assertThrows(
+    msg: String?,
+    callable: () -> Unit
+): T {
+    try {
+        callable()
+        throw RuntimeException(msg)
+    } catch (e: Throwable) {
+        if (e is T) return e
+        throw e
+    }
+}

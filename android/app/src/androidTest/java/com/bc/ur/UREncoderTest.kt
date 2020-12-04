@@ -60,11 +60,7 @@ class UREncoderTest {
 
         // make sure encoder is closed
         assertTrue(encoder.isClosed)
-        try {
-            encoder.nextPart()
-            throw RuntimeException("test failed since encoder has not been disposed")
-        } catch (ignore: IllegalArgumentException) {
-        }
+        assertThrows<IllegalArgumentException>("test failed since encoder has not been disposed") { encoder.nextPart() }
     }
 
 }

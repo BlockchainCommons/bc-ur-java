@@ -1,12 +1,16 @@
 package com.bc.ur;
 
+import com.bc.ur.util.TestUtils;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static com.bc.ur.util.TestUtils.assertThrows;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 @RunWith(JUnit4.class)
@@ -44,12 +48,7 @@ public class URDecoderTest {
             assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(ur.getCbor()), TestUtils.toTypedArray(resultUR.getCbor())));
 
             // make sure getting resultError throw IllegalStateException
-            try {
-                decoder.resultError();
-                throw new Throwable("test failed due to checking resultError");
-            } catch (IllegalStateException e) {
-                assertTrue(true);
-            }
+            assertThrows("test failed due to checking resultError", IllegalStateException.class, decoder::resultError);
         } catch (Exception e) {
             throw new RuntimeException("Test failed due to " + e.getMessage());
         }
@@ -58,17 +57,8 @@ public class URDecoderTest {
         assertTrue(refEncoder.isClosed());
         assertTrue(refDecoder.isClosed());
 
-        try {
-            refEncoder.nextPart();
-            throw new RuntimeException("test failed since encoder has not been disposed");
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        try {
-            refDecoder.expectedType();
-            throw new RuntimeException("test failed since decoder has not been disposed");
-        } catch (IllegalArgumentException ignore) {
-        }
+        assertThrows("test failed since encoder has not been disposed", IllegalArgumentException.class, refEncoder::nextPart);
+        assertThrows("test failed since decoder has not been disposed", IllegalArgumentException.class, refDecoder::expectedType);
     }
 
     @Test
@@ -80,11 +70,7 @@ public class URDecoderTest {
                 "uf:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
         };
         for (String it : invalidData) {
-            try {
-                URDecoder.decode(it);
-                throw new RuntimeException("test failed due to " + it);
-            } catch (IllegalStateException ignore) {
-            }
+            assertThrows("test failed due to " + it, IllegalStateException.class, () -> URDecoder.decode(it));
         }
     }
 }

@@ -37,17 +37,10 @@ class URDecoderTest {
                 // make sure resultUR return exact UR entered before
                 val resultUR = d.resultUR()
                 assertEquals(ur.type, resultUR.type)
-                assertTrue(
-                    ur.cbor.toTypedArray().contentDeepEquals(resultUR.cbor.toTypedArray())
-                )
+                assertTrue(ur.cbor.toTypedArray().contentDeepEquals(resultUR.cbor.toTypedArray()))
 
                 // make sure getting resultError throw IllegalStateException
-                try {
-                    d.resultError()
-                    throw Throwable("test failed due to checking resultError")
-                } catch (e: IllegalStateException) {
-                    assertTrue(true)
-                }
+                assertThrows<IllegalStateException>("test failed due to checking resultError") { d.resultError() }
             }
         }
 
@@ -55,17 +48,8 @@ class URDecoderTest {
         assertTrue(encoder.isClosed)
         assertTrue(decoder.isClosed)
 
-        try {
-            encoder.nextPart()
-            throw RuntimeException("test failed since encoder has not been disposed")
-        } catch (ignore: IllegalArgumentException) {
-        }
-
-        try {
-            decoder.expectedType()
-            throw RuntimeException("test failed since decoder has not been disposed")
-        } catch (ignore: IllegalArgumentException) {
-        }
+        assertThrows<IllegalArgumentException>("test failed since encoder has not been disposed") { encoder.nextPart() }
+        assertThrows<IllegalArgumentException>("test failed since decoder has not been disposed") { decoder.expectedType() }
     }
 
     @Test
@@ -76,12 +60,7 @@ class URDecoderTest {
             "ur:ur:ur",
             "uf:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
         ).forEach {
-            try {
-                URDecoder.decode(it)
-                throw RuntimeException("test failed due to $it")
-            } catch (ignore: IllegalStateException) {
-            }
-
+            assertThrows<IllegalStateException>("test failed due to $it") { URDecoder.decode(it) }
         }
 
     }

@@ -4,7 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import static com.bc.ur.TestUtils.bytes2Hex;
+import static com.bc.ur.util.TestUtils.bytes2Hex;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(JUnit4.class)

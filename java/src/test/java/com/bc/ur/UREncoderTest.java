@@ -6,7 +6,10 @@ import org.junit.runners.JUnit4;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static com.bc.ur.util.TestUtils.assertThrows;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(JUnit4.class)
 public class UREncoderTest {
@@ -67,12 +70,7 @@ public class UREncoderTest {
 
         // make sure encoder is closed
         assertTrue(refEncoder.isClosed());
-
-        try {
-            refEncoder.nextPart();
-            throw new RuntimeException("test failed since encoder has not been disposed");
-        } catch (IllegalArgumentException ignore) {
-        }
+        assertThrows("test failed since encoder has not been disposed", IllegalArgumentException.class, refEncoder::nextPart);
     }
 
 }
