@@ -1,12 +1,16 @@
 package com.bc.ur;
 
+import com.bc.ur.util.TestUtils;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static com.bc.ur.util.TestUtils.assertThrows;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 @RunWith(JUnit4.class)
@@ -23,27 +27,36 @@ public class URDecoderTest {
     }
 
     @Test
-    public void testDecodeMultiParts() {
+    public void testDecodeMultiParts() throws Exception {
         UR ur = UR.create(32767, "Wolf");
-        UREncoder encoder = new UREncoder(ur, 1000, 100, 10);
-        URDecoder decoder = new URDecoder();
-        do {
-            String part = encoder.nextPart();
-            decoder.receivePart(part);
-        }while (!decoder.isComplete());
 
-        // make sure resultUR return exact UR entered before
-        UR resultUR = decoder.resultUR();
-        assertEquals(ur.getType(), resultUR.getType());
-        assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(ur.getCbor()), TestUtils.toTypedArray(resultUR.getCbor())));
+        UREncoder refEncoder;
+        URDecoder refDecoder;
 
-        // make sure getting resultError throw IllegalStateException
-        try {
-            decoder.resultError();
-            throw new RuntimeException("test failed due to checking resultError");
-        } catch (IllegalStateException e) {
-            assertTrue(true);
+        try (UREncoder encoder = new UREncoder(ur, 1000, 100, 10);
+             URDecoder decoder = new URDecoder()) {
+            refEncoder = encoder;
+            refDecoder = decoder;
+            do {
+                String part = encoder.nextPart();
+                decoder.receivePart(part);
+            } while (!decoder.isComplete());
+
+            // make sure resultUR return exact UR entered before
+            UR resultUR = decoder.resultUR();
+            assertEquals(ur.getType(), resultUR.getType());
+            assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(ur.getCbor()), TestUtils.toTypedArray(resultUR.getCbor())));
+
+            // make sure getting resultError throw IllegalStateException
+            assertThrows("test failed due to checking resultError", IllegalStateException.class, decoder::resultError);
         }
+
+        // make sure encoder/decoder is closed
+        assertTrue(refEncoder.isClosed());
+        assertTrue(refDecoder.isClosed());
+
+        assertThrows("test failed since encoder has not been disposed", IllegalArgumentException.class, refEncoder::nextPart);
+        assertThrows("test failed since decoder has not been disposed", IllegalArgumentException.class, refDecoder::expectedType);
     }
 
     @Test
@@ -55,11 +68,7 @@ public class URDecoderTest {
                 "uf:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
         };
         for (String it : invalidData) {
-            try {
-                URDecoder.decode(it);
-                throw new RuntimeException("test failed due to " + it);
-            } catch (IllegalStateException ignore) {
-            }
+            assertThrows("test failed due to " + it, IllegalStateException.class, () -> URDecoder.decode(it));
         }
     }
 }

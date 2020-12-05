@@ -23,27 +23,33 @@ class URDecoderTest {
     @Test
     fun testDecodeMultiParts() {
         val ur = UR.create(32767, "Wolf")
+
         val encoder = UREncoder(ur, 1000, 100, 10)
         val decoder = URDecoder()
-        do {
-            val part = encoder.nextPart()
-            decoder.receivePart(part)
-        } while (!decoder.isComplete)
 
-        // make sure resultUR return exact UR entered before
-        val resultUR = decoder.resultUR()
-        assertEquals(ur.type, resultUR.type)
-        assertTrue(
-            ur.cbor.toTypedArray().contentDeepEquals(resultUR.cbor.toTypedArray())
-        )
+        encoder.use { e ->
+            decoder.use { d ->
+                do {
+                    val part = e.nextPart()
+                    d.receivePart(part)
+                } while (!d.isComplete)
 
-        // make sure getting resultError throw IllegalStateException
-        try {
-            decoder.resultError()
-            throw RuntimeException("test failed due to checking resultError")
-        } catch (e: IllegalStateException) {
-            assertTrue(true)
+                // make sure resultUR return exact UR entered before
+                val resultUR = d.resultUR()
+                assertEquals(ur.type, resultUR.type)
+                assertTrue(ur.cbor.toTypedArray().contentDeepEquals(resultUR.cbor.toTypedArray()))
+
+                // make sure getting resultError throw IllegalStateException
+                assertThrows<IllegalStateException>("test failed due to checking resultError") { d.resultError() }
+            }
         }
+
+        // make sure encoder/decoder is closed
+        assertTrue(encoder.isClosed)
+        assertTrue(decoder.isClosed)
+
+        assertThrows<IllegalArgumentException>("test failed since encoder has not been disposed") { encoder.nextPart() }
+        assertThrows<IllegalArgumentException>("test failed since decoder has not been disposed") { decoder.expectedType() }
     }
 
     @Test
@@ -54,12 +60,7 @@ class URDecoderTest {
             "ur:ur:ur",
             "uf:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
         ).forEach {
-            try {
-                URDecoder.decode(it)
-                throw RuntimeException("test failed due to $it")
-            } catch (ignore: IllegalStateException) {
-            }
-
+            assertThrows<IllegalStateException>("test failed due to $it") { URDecoder.decode(it) }
         }
 
     }

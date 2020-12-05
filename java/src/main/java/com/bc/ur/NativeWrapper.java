@@ -1,22 +1,26 @@
 package com.bc.ur;
 
-abstract class NativeWrapper {
+abstract class NativeWrapper implements AutoCloseable {
 
-    protected final JniObject ptrObj;
+    protected JniObject ptrObj;
 
     NativeWrapper(JniObject ptrObj) {
         this.ptrObj = ptrObj;
+    }
+
+    public boolean isClosed() {
+        return ptrObj == null;
     }
 
     static class JniObject {
 
         private final transient long ptr;
 
-        public JniObject(final long ptr) {
+        JniObject(final long ptr) {
             this.ptr = ptr;
         }
 
-        public long getPtr() {
+        long getPtr() {
             return ptr;
         }
     }

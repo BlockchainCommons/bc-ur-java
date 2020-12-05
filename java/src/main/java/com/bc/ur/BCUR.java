@@ -30,6 +30,8 @@ class BCUR {
 
     static native String UREncoder_next_part(NativeWrapper.JniObject encoder);
 
+    static native boolean UREncoder_dispose(NativeWrapper.JniObject encoder);
+
     // URDecoder
     static native UR URDecoder_decode(String encoded);
 
@@ -58,5 +60,7 @@ class BCUR {
     static native IllegalStateException URDecoder_result_error(NativeWrapper.JniObject decoder);
 
     static native boolean URDecoder_receive_part(NativeWrapper.JniObject decoder, String s);
+
+    static native boolean URDecoder_dispose(NativeWrapper.JniObject decoder);
 
 }
