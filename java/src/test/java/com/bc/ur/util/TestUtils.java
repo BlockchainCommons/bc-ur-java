@@ -22,7 +22,7 @@ public class TestUtils {
                                                        Callable callable) {
         try {
             callable.call();
-            throw new RuntimeException(msg);
+            throw new AssertionError(msg);
         } catch (Throwable e) {
             if (expectedError.isAssignableFrom(e.getClass()))
                 return (T) e;
