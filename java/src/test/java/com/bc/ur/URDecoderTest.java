@@ -27,7 +27,7 @@ public class URDecoderTest {
     }
 
     @Test
-    public void testDecodeMultiParts() throws Throwable {
+    public void testDecodeMultiParts() throws Exception {
         UR ur = UR.create(32767, "Wolf");
 
         UREncoder refEncoder;
@@ -49,8 +49,6 @@ public class URDecoderTest {
 
             // make sure getting resultError throw IllegalStateException
             assertThrows("test failed due to checking resultError", IllegalStateException.class, decoder::resultError);
-        } catch (Exception e) {
-            throw new RuntimeException("Test failed due to " + e.getMessage());
         }
 
         // make sure encoder/decoder is closed

@@ -24,7 +24,7 @@ public class UREncoderTest {
     }
 
     @Test
-    public void testMultiPartEncoder() {
+    public void testMultiPartEncoder() throws Exception {
         UR ur = UR.create(256, "Wolf");
         UREncoder refEncoder;
 
@@ -64,8 +64,6 @@ public class UREncoderTest {
             assertTrue(encoder.isComplete());
             assertFalse(encoder.isSinglePart());
             assertEquals(0, encoder.getLastPartIndexes().length);
-        } catch (Exception e) {
-            throw new RuntimeException("Test failed due to " + e.getMessage());
         }
 
         // make sure encoder is closed
