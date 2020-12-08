@@ -2,31 +2,13 @@
 
 URs ("Uniform Resources") are a method for encoding structured binary data for transport in URIs and QR Codes. They are described in [BCR-2020-005](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-005-ur.md).
 
-The original source written in C++ can be found [here](https://github.com/BlockchainCommons/bc-ur).
+The original source written in C++ can be found [here](https://github.com/BlockchainCommons/bc-ur). This repo is a Java conversion.
 
 ## Status — Work-in-Progress
 
 ` Blockchain Commons UR Java library`  is an early Work-In-Progress.
 
-## Origin, Authors, Copyright & Licenses
-
-Unless otherwise noted (either in this [/README.md](./README.md) or in the file's header comments) the contents of this repository are Copyright © 2020 by Blockchain Commons, LLC, and are [licensed](./LICENSE) under the [spdx:BSD-2-Clause Plus Patent License](https://spdx.org/licenses/BSD-2-Clause-Patent.html).
-
-In most cases, the authors, copyright, and license for each file reside in header comments in the source code. When it does not, we have attempted to attribute it accurately in the table below.
-
-This table below also establishes provenance (repository of origin, permalink, and commit id) for files included from repositories that are outside of this repo. Contributors to these files are listed in the commit history for each repository, first with changes found in the commit history of this repo, then in changes in the commit history of their repo of their origin.
-
-| File      | From                                                         | Commit                                                       | Authors & Copyright (c)                                | License                                                     |
-| --------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------ | ----------------------------------------------------------- |
-| exception-to-the-rule.c or exception-folder | [https://github.com/community/repo-name/PERMALINK](https://github.com/community/repo-name/PERMALINK) | [https://github.com/community/repo-name/commit/COMMITHASH]() | 2020 Exception Author  | [MIT](https://spdx.org/licenses/MIT)                        |
-
-### Derived from…
-
-This  `Blockchain Commons UR Java library` project is either derived from or was inspired by:
-
-- [blockchain-commons/bc-ur/](https://github.com/BlockchainCommons/bc-ur) — Repo that is UR Reference Implementation in C++, from [Blockchain-Commons](https://github.com/BlockchainCommons).
-
-## Usage
+## Usage Instructions
 Encode single part
 ```java
 UR ur = UR.create(50, "Wolf");
@@ -75,6 +57,25 @@ try (UREncoder encoder = new UREncoder(ur, 1000, 100, 10);
 }
 ```
 
+## Origin, Authors, Copyright & Licenses
+
+Unless otherwise noted (either in this [/README.md](./README.md) or in the file's header comments) the contents of this repository are Copyright © 2020 by Blockchain Commons, LLC, and are [licensed](./LICENSE) under the [spdx:BSD-2-Clause Plus Patent License](https://spdx.org/licenses/BSD-2-Clause-Patent.html).
+
+In most cases, the authors, copyright, and license for each file reside in header comments in the source code. When it does not, we have attempted to attribute it accurately in the table below.
+
+This table below also establishes provenance (repository of origin, permalink, and commit id) for files included from repositories that are outside of this repo. Contributors to these files are listed in the commit history for each repository, first with changes found in the commit history of this repo, then in changes in the commit history of their repo of their origin.
+
+| File      | From                                                         | Commit                                                       | Authors & Copyright (c)                                | License                                                     |
+| --------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------ | ----------------------------------------------------------- |
+| exception-to-the-rule.c or exception-folder | [https://github.com/community/repo-name/PERMALINK](https://github.com/community/repo-name/PERMALINK) | [https://github.com/community/repo-name/commit/COMMITHASH]() | 2020 Exception Author  | [MIT](https://spdx.org/licenses/MIT)                        |
+
+### Derived from…
+
+This  `Blockchain Commons UR Java library` project is either derived from or was inspired by:
+
+- [blockchain-commons/bc-ur/](https://github.com/BlockchainCommons/bc-ur) — Repo that is UR Reference Implementation in C++, from [Blockchain-Commons](https://github.com/BlockchainCommons).
+
+
 ## Financial Support
 
 `Blockchain Commons UR Java library` is a project of [Blockchain Commons](https://www.blockchaincommons.com/). We are proudly a "not-for-profit" social benefit corporation committed to open source & open development. Our work is funded entirely by donations and collaborative partnerships with people like you. Every contribution will be spent on building open tools, technologies, and techniques that sustain and advance blockchain and internet security infrastructure and promote an open web.
@@ -109,6 +110,12 @@ The following people directly contributed to this repository. You can add your n
 | ----------------- | ------------------- | ------------------------------------------------- | ------------------------------------- | -------------------------------------------------- |
 | Christopher Allen | Principal Architect | [@ChristopherA](https://github.com/ChristopherA) | \<ChristopherA@LifeWithAlacrity.com\> | FDFE 14A5 4ECB 30FC 5D22  74EF F8D3 6C91 3574 05ED |
 | Hieu Pham | Software Engineer | [@jollyjoker992](https://github.com/jollyjoker992) | \<hieupham@bitmark.com\> | D14E 5669 6799 6C69 4B22 E13A 7E80 8AC5 0392 AD3A |
+
+### Contributing Sponsor
+
+`Blockchain Commons UR Java library` was produced as a collaboration between Blockchain Commons and one of our patrons, Bitmark: Bitmark wrote the library based on Blockchain Commons' specifications and reference libraries. Blockchain Commons is dedicated to not just creating open infrastructure on our own, but also coordinating the work of other companies in benefiting the Commons. Thanks to Bitmark for being the first company to work directly with us in this manner.
+
+![](images/logos/bitmark-logo.png)
 
 ## Responsible Disclosure
 
