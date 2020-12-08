@@ -1,4 +1,5 @@
 # Blockchain Commons UR Java library
+### _by Hieu Pham and Christopher Allen_
 
 URs ("Uniform Resources") are a method for encoding structured binary data for transport in URIs and QR Codes. They are described in [BCR-2020-005](https://github.com/BlockchainCommons/Research/blob/master/papers/bcr-2020-005-ur.md).
 
