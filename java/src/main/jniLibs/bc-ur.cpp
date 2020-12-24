@@ -7,7 +7,7 @@
 #include <set>
 #include <vector>
 #include <cxxabi.h>
-#include "../../../../deps/bc-ur/src/bc-ur.hpp"
+#include <bc-ur.hpp>
 
 using namespace ur;
 

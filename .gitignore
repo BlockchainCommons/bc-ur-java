@@ -100,9 +100,6 @@ output.json
 
 .idea
 .DS_Store
-libwallycore.so
-Wally.java
-keystores/release.keystore
-keystores/release.properties
+java/src/main/libs
 
 # End of Specific for project

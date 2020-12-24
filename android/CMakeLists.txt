@@ -11,12 +11,22 @@ project(bc-ur)
 # and CMake builds them for you. When you build your app, Gradle
 # automatically packages shared libraries with your APK.
 
-file(GLOB_RECURSE BC_UR_SRC "../deps/bc-ur/src/*.c*")
+get_filename_component(ROOT_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
 
-include_directories(../deps/bc-ur/src /usr/local/include)
+# define source files
+file(GLOB BC_UR_SRC ${ROOT_DIR}/deps/bc-ur/src/*.c*)
+set(TARGET_INCLUDE_DIRS ${ROOT_DIR}/deps/bc-ur/src)
 
+# define include dir
+include_directories(/usr/local/include)
+
+# compile
 add_library(bc-ur-base STATIC ${BC_UR_SRC})
 
-add_library(bc-ur SHARED ../java/src/main/jniLibs/bc-ur.cpp)
+add_library(bc-ur SHARED ${ROOT_DIR}/java/src/main/jniLibs/bc-ur.cpp)
 
+# link
 target_link_libraries(bc-ur bc-ur-base)
+
+# target headers
+target_include_directories(bc-ur PRIVATE ${TARGET_INCLUDE_DIRS})
