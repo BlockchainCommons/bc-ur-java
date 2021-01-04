@@ -3,7 +3,7 @@ package com.bc.ur;
 class BCUR {
 
     static {
-        LibraryLoader.load("bc-ur");
+        System.loadLibrary("bc-ur");
     }
 
     // UR
