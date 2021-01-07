@@ -20,7 +20,7 @@ class UREncoderTest {
     @Test
     fun testMultiPartEncoder() {
         val ur = UR.create(256, "Wolf")
-        val encoder = UREncoder(ur, 30, 0, 10)
+        val encoder = UREncoder(ur, 30)
         encoder.use { e ->
             val parts = mutableListOf<String>()
             for (i in 0 until 20) {

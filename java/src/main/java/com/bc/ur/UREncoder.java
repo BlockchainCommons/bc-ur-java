@@ -10,6 +10,10 @@ public class UREncoder extends NativeWrapper {
         super(BCUR.UREncoder_new(ur, maxFragmentLen, firstSeqNum, minFragmentLen));
     }
 
+    public UREncoder(UR ur, int maxFragmentLen) {
+        this(ur, maxFragmentLen, 0, 10);
+    }
+
     public long getSeqNum() {
         return BCUR.UREncoder_seq_num(ptrObj);
     }

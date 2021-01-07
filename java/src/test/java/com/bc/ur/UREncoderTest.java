@@ -28,7 +28,7 @@ public class UREncoderTest {
         UR ur = UR.create(256, "Wolf");
         UREncoder refEncoder;
 
-        try (UREncoder encoder = new UREncoder(ur, 30, 0, 10)) {
+        try (UREncoder encoder = new UREncoder(ur, 30)) {
             refEncoder = encoder;
             String[] parts = new String[20];
             for (int i = 0; i < 20; i++) {
