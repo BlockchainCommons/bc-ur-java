@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstdint>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <vector>
 #include <cxxabi.h>
@@ -11,7 +12,6 @@
 
 using namespace ur;
 
-// ============== JNI utilities ==============
 // @reference: https://github.com/facebook/rocksdb/blob/master/java/rocksjni/portal.h
 class JavaClass {
 public:
@@ -36,6 +36,7 @@ public:
 template<class DERIVED>
 class JavaException : public JavaClass {
 public:
+
     /**
      * Create and throw a java exception with the provided message
      *
@@ -80,96 +81,70 @@ public:
     }
 };
 
-// ============= Primitive types utilities ==============
-class PrimitiveJni : public JavaClass {
+class PrimitiveJni {
 public:
-    static std::string copy_std_string(JNIEnv *env, jstring js, jboolean *has_exception = nullptr) {
+    static std::string copy_std_string(JNIEnv *env, jstring js) {
         const char *utf = env->GetStringUTFChars(js, nullptr);
         if (utf == nullptr) {
             // exception thrown: OutOfMemoryError
             env->ExceptionCheck();
-            if (has_exception != nullptr) *has_exception = JNI_TRUE;
             return std::string();
         } else if (env->ExceptionCheck()) {
             // exception thrown
             env->ReleaseStringUTFChars(js, utf);
-            if (has_exception != nullptr) *has_exception = JNI_TRUE;
             return std::string();
         }
 
         std::string name(utf);
         env->ReleaseStringUTFChars(js, utf);
-        if (has_exception != nullptr) *has_exception = JNI_FALSE;
         return name;
     }
 
-    static jstring to_jstring(JNIEnv *env, const std::string *string,
-                              const bool treat_empty_as_null = false) {
+    static jstring to_jstring(JNIEnv *env, const std::string *string) {
         if (string == nullptr) {
-            return nullptr;
-        }
-
-        if (treat_empty_as_null && string->empty()) {
             return nullptr;
         }
 
         return env->NewStringUTF(string->c_str());
     }
 
-    static std::vector<uint8_t> to_vector_uint8_t(JNIEnv *env, jbyteArray jarray) {
-        std::vector<uint8_t> vector;
-        jsize jarray_len = env->GetArrayLength(jarray);
-        vector.reserve(jarray_len);
-        uint8_t *arrayPtr = to_uint8_t_ptr(env, jarray);
-        for (jsize i = 0; i < jarray_len; i++) {
-            vector.emplace_back(arrayPtr[i]);
-        }
-        delete arrayPtr;
+    static std::vector<uint8_t> to_uint8_t_vector(JNIEnv *env, jbyteArray array) {
+        jsize len = env->GetArrayLength(array);
+        auto c_array = to_uint8_t_array(env, array);
+        auto vector = std::vector<uint8_t>(c_array.get(), c_array.get() + len);
         return vector;
     }
 
-    static uint8_t *to_uint8_t_ptr(JNIEnv *env, jbyteArray array) {
+    static std::unique_ptr<uint8_t> to_uint8_t_array(JNIEnv *env, jbyteArray array) {
         jsize len = env->GetArrayLength(array);
-        auto *buf = new uint8_t[len];
-        env->GetByteArrayRegion(array, 0, len, reinterpret_cast<jbyte *>(buf));
-        return buf;
+        jbyte *c_array = env->GetByteArrayElements(array, JNI_FALSE);
+        auto ret = std::unique_ptr<uint8_t>(new uint8_t[len]);
+        memcpy(ret.get(), c_array, len);
+        env->ReleaseByteArrayElements(array, c_array, JNI_ABORT);
+        return ret;
     }
 
     static jbyteArray to_jbyteArray(JNIEnv *env, const std::vector<uint8_t> &vector) {
-        auto *buf = const_cast<uint8_t *>(vector.data());
-        return to_jbyteArray(env, buf, vector.size());
+        auto *c_array(const_cast<uint8_t *>(vector.data()));
+        return to_jbyteArray(env, c_array, vector.size());
     }
 
-    static jbyteArray to_jbyteArray(JNIEnv *env, uint8_t *buf, jsize len) {
-        jbyteArray array = env->NewByteArray(len);
-        env->SetByteArrayRegion(array, 0, len, reinterpret_cast<const jbyte *>(buf));
-        return array;
+    static jbyteArray to_jbyteArray(JNIEnv *env, uint8_t *array, jsize len) {
+        jbyteArray j_array = env->NewByteArray(len);
+        env->SetByteArrayRegion(j_array, 0, len, reinterpret_cast<const jbyte *>(array));
+        return j_array;
     }
 
     static jintArray to_jintArray(JNIEnv *env, const std::set<size_t> &s) {
-        auto len = s.size();
-        auto *buf = new size_t[len];
-        for (int i = 0; i < len; i++) {
-            auto it = s.begin();
-            buf[i] = *it;
-            std::advance(it, 1);
-        }
-        auto jarray = to_jintArray(env, buf, len);
-        delete[] buf;
-        return jarray;
-    }
-
-    static jintArray to_jintArray(JNIEnv *env, size_t *buf, jsize len) {
-        jintArray array = env->NewIntArray(len);
-        env->SetIntArrayRegion(array, 0, len, reinterpret_cast<const jint *>(buf));
-        return array;
+        std::vector<size_t> vector(s.begin(), s.end());
+        jintArray j_array = env->NewIntArray(s.size());
+        env->SetIntArrayRegion(j_array, 0, vector.size(), reinterpret_cast<jint *>(vector.data()));
+        return j_array;
     }
 };
 
-// ============= Portal for specific objects ===================
-// The portal class for java.lang.IllegalArgumentException
-class IllegalArgumentExceptionJni :
-        public JavaException<IllegalArgumentExceptionJni> {
+// java.lang.IllegalArgumentException
+class IllegalArgumentExceptionJni : public JavaException<IllegalArgumentExceptionJni> {
 public:
     static std::string get_class_name() {
         return "java/lang/IllegalArgumentException";
@@ -188,9 +163,19 @@ public:
     }
 };
 
-// The portal class for java.lang.IllegalStateException
-class IllegalStateExceptionJni :
-        public JavaException<IllegalStateExceptionJni> {
+// java.lang.IllegalStateException
+class IllegalStateExceptionJni : public JavaException<IllegalStateExceptionJni> {
+private:
+    static jmethodID get_constructor_mid(JNIEnv *env) {
+        jclass jclazz = JavaClass::get_jclass(env, get_class_name().c_str());
+        assert(jclazz != nullptr);
+
+        jmethodID mid = env->GetMethodID(jclazz, "<init>", "(Ljava/lang/String;)V");
+        assert(mid != nullptr);
+
+        return mid;
+    }
+
 public:
     static std::string get_class_name() {
         return "java/lang/IllegalStateException";
@@ -212,21 +197,11 @@ public:
         return JavaException::throw_new(env, ex);
     }
 
-    static jmethodID construct_method_id(JNIEnv *env) {
-        jclass jclazz = JavaClass::get_jclass(env, get_class_name().c_str());
-        assert(jclazz != nullptr);
-
-        jmethodID mid = env->GetMethodID(jclazz, "<init>", "(Ljava/lang/String;)V");
-        assert(mid != nullptr);
-
-        return mid;
-    }
-
-    static jobject create(JNIEnv *env, const std::string &msg) {
+    static jobject new_object(JNIEnv *env, const std::string &msg) {
         jclass jclazz = get_jclass(env, get_class_name().c_str());
         assert(jclazz != nullptr);
 
-        jmethodID mid = construct_method_id(env);
+        jmethodID mid = get_constructor_mid(env);
         assert(mid != nullptr);
 
         jstring jmsg = PrimitiveJni::to_jstring(env, &msg);
@@ -236,22 +211,21 @@ public:
 
 // com.bc.ur.NativeWrapper$JniObject
 class ObjectJni : public JavaClass {
-public:
+private:
     static jclass get_jclass(JNIEnv *env) {
         return JavaClass::get_jclass(env, "com/bc/ur/NativeWrapper$JniObject");
     }
 
-    static jmethodID construct_method_id(JNIEnv *env) {
+    static jmethodID get_constructor_mid(JNIEnv *env) {
         jclass jclazz = get_jclass(env);
         assert(jclazz != nullptr);
 
-        static jmethodID mid =
-                env->GetMethodID(jclazz, "<init>", "(J)V");
+        static jmethodID mid = env->GetMethodID(jclazz, "<init>", "(J)V");
         assert(mid != nullptr);
         return mid;
     }
 
-    static jmethodID get_ptr_method_id(JNIEnv *env) {
+    static jmethodID get_ptr_mid(JNIEnv *env) {
         jclass jclazz = get_jclass(env);
         assert(jclazz != nullptr);
 
@@ -261,34 +235,33 @@ public:
         return mid;
     }
 
-    static jobject create(JNIEnv *env, void *ptr) {
+public:
+    static jobject new_object(JNIEnv *env, void *ptr) {
         jclass jclazz = get_jclass(env);
         assert(jclazz != nullptr);
 
-        jmethodID mid = construct_method_id(env);
+        jmethodID mid = get_constructor_mid(env);
         assert(mid != nullptr);
 
         return env->NewObject(jclazz, mid, (jlong) (uintptr_t) ptr);
     }
 
-    static void *get(JNIEnv *env, jobject obj) {
-        jmethodID mid = get_ptr_method_id(env);
+    static void *get_object(JNIEnv *env, jobject obj) {
+        jmethodID mid = get_ptr_mid(env);
         assert(mid != nullptr);
 
-        void *ret;
-        ret = (void *) (uintptr_t) (env->CallLongMethod(obj, mid));
-        return ret;
+        return (void *) (uintptr_t) (env->CallLongMethod(obj, mid));
     }
 };
 
 // com.bc.ur.UR
 class URJni : public JavaClass {
-public:
+private:
     static jclass get_jclass(JNIEnv *env) {
         return JavaClass::get_jclass(env, "com/bc/ur/UR");
     }
 
-    static jmethodID get_cbor_method_id(JNIEnv *env) {
+    static jmethodID get_cbor_mid(JNIEnv *env) {
         jclass jclazz = get_jclass(env);
         assert(jclazz != nullptr);
 
@@ -298,7 +271,7 @@ public:
         return mid;
     }
 
-    static jmethodID get_type_method_id(JNIEnv *env) {
+    static jmethodID get_type_mid(JNIEnv *env) {
         jclass jclazz = get_jclass(env);
         assert(jclazz != nullptr);
 
@@ -308,34 +281,32 @@ public:
         return mid;
     }
 
-    static jobject to_java_UR(JNIEnv *env, const std::string &type, const ByteVector &cbor) {
+public:
+    static jobject to_j_UR(JNIEnv *env, const std::string &type, const ByteVector &cbor) {
         jclass jclazz = get_jclass(env);
         assert(jclazz != nullptr);
 
-        jmethodID mid = env->GetMethodID(jclazz, "<init>",
-                                         "(Ljava/lang/String;[B)V");
+        jmethodID mid = env->GetMethodID(jclazz, "<init>", "(Ljava/lang/String;[B)V");
         assert(mid != nullptr);
 
-        jstring jtype = PrimitiveJni::to_jstring(env, &type);
-        jbyteArray jcbor = PrimitiveJni::to_jbyteArray(env, cbor);
-        jobject obj = env->NewObject(jclazz, mid, jtype, jcbor);
-        return obj;
+        jstring j_type = PrimitiveJni::to_jstring(env, &type);
+        jbyteArray j_cbor = PrimitiveJni::to_jbyteArray(env, cbor);
+        return env->NewObject(jclazz, mid, j_type, j_cbor);
     }
 
-    static UR *to_c_UR(JNIEnv *env, jobject obj) {
-        auto jtype = (jstring) env->CallObjectMethod(obj, URJni::get_type_method_id(env));
-        auto jcbor = (jbyteArray) env->CallObjectMethod(obj, URJni::get_cbor_method_id(env));
+    static std::unique_ptr<UR> to_c_UR(JNIEnv *env, jobject obj) {
+        auto j_type = (jstring) env->CallObjectMethod(obj, get_type_mid(env));
+        auto j_cbor = (jbyteArray) env->CallObjectMethod(obj, get_cbor_mid(env));
 
-        std::vector<uint8_t> cbor = PrimitiveJni::to_vector_uint8_t(env, jcbor);
-        std::string type = PrimitiveJni::copy_std_string(env, jtype, nullptr);
-        auto *result = new UR(type, (ByteVector const &) cbor);
-        return result;
+        std::vector<uint8_t> cbor = PrimitiveJni::to_uint8_t_vector(env, j_cbor);
+        std::string type = PrimitiveJni::copy_std_string(env, j_type);
+        return std::make_unique<UR>(type, (ByteVector const &) cbor);
     }
 
 };
 
 template<typename T, class CALLABLE>
-static T safetyCall(JNIEnv *env, T errorValReturn, CALLABLE func) {
+static T call(JNIEnv *env, T errorValReturn, CALLABLE func) {
     try {
         return func();
     } catch (const std::exception &e) {
@@ -349,43 +320,46 @@ extern "C" {
 #endif
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_UR_1new_1from_1len_1seed_1string(JNIEnv *env, jclass clazz, jint len,
+Java_com_bc_ur_BCUR_UR_1new_1from_1len_1seed_1string(JNIEnv *env,
+                                                     jclass clazz,
+                                                     jint len,
                                                      jstring seed) {
     if (seed == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Seed is null");
         return nullptr;
     }
 
-    return safetyCall<jobject>(env, nullptr, [&]() {
-        auto cseed = PrimitiveJni::copy_std_string(env, seed);
-        auto rng = Xoshiro256(cseed);
+    return call<jobject>(env, nullptr, [&]() {
+        auto c_seed = PrimitiveJni::copy_std_string(env, seed);
+        auto rng = Xoshiro256(c_seed);
         auto msg = rng.next_data(len);
         ByteVector cbor;
         CborLite::encodeBytes(cbor, msg);
-        auto jur = URJni::to_java_UR(env, "bytes", cbor);
-        return jur;
+        return URJni::to_j_UR(env, "bytes", cbor);
     });
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_UR_1new_1from_1message(JNIEnv *env, jclass clazz, jstring type,
+Java_com_bc_ur_BCUR_UR_1new_1from_1message(JNIEnv *env,
+                                           jclass clazz,
+                                           jstring type,
                                            jbyteArray message) {
     if (message == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java message is null");
         return nullptr;
     }
 
-    std::string ctype = "bytes";
+    std::string c_type = "bytes";
     if (type != nullptr) {
-        ctype = PrimitiveJni::copy_std_string(env, type);
+        c_type = PrimitiveJni::copy_std_string(env, type);
     }
 
-    return safetyCall<jobject>(env, nullptr, [&]() {
+    return call<jobject>(env, nullptr, [&]() {
         ByteVector cbor;
-        auto msg = PrimitiveJni::to_vector_uint8_t(env, message);
+        auto msg = PrimitiveJni::to_uint8_t_vector(env, message);
         CborLite::encodeBytes(cbor, msg);
-        auto jur = URJni::to_java_UR(env, ctype, cbor);
-        return jur;
+        msg.clear();
+        return URJni::to_j_UR(env, c_type, cbor);
     });
 }
 
@@ -396,14 +370,13 @@ Java_com_bc_ur_BCUR_UR_1get_1message(JNIEnv *env, jclass clazz, jobject ur) {
         return nullptr;
     }
 
-    return safetyCall<jbyteArray>(env, nullptr, [&]() {
-        auto cur = URJni::to_c_UR(env, ur);
-        auto cbor = cur->cbor();
+    return call<jbyteArray>(env, nullptr, [&]() {
+        auto c_ur = URJni::to_c_UR(env, ur);
+        auto cbor = c_ur->cbor();
         auto i = cbor.begin();
         auto end = cbor.end();
         ByteVector msg;
         CborLite::decodeBytes(i, end, msg);
-        delete cur;
         return PrimitiveJni::to_jbyteArray(env, msg);
     });
 }
@@ -415,29 +388,32 @@ Java_com_bc_ur_BCUR_UREncoder_1encode(JNIEnv *env, jclass clazz, jobject ur) {
         return nullptr;
     }
 
-    return safetyCall<jstring>(env, nullptr, [&]() {
-        auto cur = URJni::to_c_UR(env, ur);
-        auto result = UREncoder::encode(*cur);
-        auto jresult = env->NewStringUTF((&result)->c_str());
-        delete cur;
-        return jresult;
+    return call<jstring>(env, nullptr, [&]() {
+        auto c_ur = URJni::to_c_UR(env, ur);
+        auto result = UREncoder::encode(*c_ur);
+        return env->NewStringUTF((&result)->c_str());
     });
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1new(JNIEnv *env, jclass clazz, jobject ur,
-                                   jint max_fragment_len, jint first_seq_num,
+Java_com_bc_ur_BCUR_UREncoder_1new(JNIEnv *env,
+                                   jclass clazz,
+                                   jobject ur,
+                                   jint max_fragment_len,
+                                   jint first_seq_num,
                                    jint min_fragment_len) {
     if (ur == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java UR is null");
         return nullptr;
     }
 
-    return safetyCall<jobject>(env, nullptr, [&]() {
-        auto cur = URJni::to_c_UR(env, ur);
-        auto *encoder = new UREncoder(*cur, max_fragment_len, first_seq_num, min_fragment_len);
-        auto result = ObjectJni::create(env, encoder);
-        return result;
+    return call<jobject>(env, nullptr, [&]() {
+        auto c_ur = URJni::to_c_UR(env, ur);
+        auto c_encoder = new UREncoder(*c_ur,
+                                       max_fragment_len,
+                                       first_seq_num,
+                                       min_fragment_len);
+        return ObjectJni::new_object(env, c_encoder);
     });
 }
 
@@ -448,10 +424,9 @@ Java_com_bc_ur_BCUR_UREncoder_1seq_1num(JNIEnv *env, jclass clazz, jobject encod
         return JNI_ERR;
     }
 
-    return safetyCall<jlong>(env, JNI_ERR, [&]() {
-        auto *obj = (UREncoder *) ObjectJni::get(env, encoder);
-        auto result = (jlong) (unsigned long long) (obj->seq_num());
-        return result;
+    return call<jlong>(env, JNI_ERR, [&]() {
+        auto c_encoder = static_cast<UREncoder *>(ObjectJni::get_object(env, encoder));
+        return (jlong) (unsigned long long) (c_encoder->seq_num());
     });
 }
 
@@ -462,25 +437,22 @@ Java_com_bc_ur_BCUR_UREncoder_1seq_1len(JNIEnv *env, jclass clazz, jobject encod
         return JNI_ERR;
     }
 
-    return safetyCall<jlong>(env, JNI_ERR, [&]() {
-        auto *obj = (UREncoder *) ObjectJni::get(env, encoder);
-        auto result = (jlong) (unsigned long long) (obj->seq_len());
-        return result;
+    return call<jlong>(env, JNI_ERR, [&]() {
+        auto c_encoder = static_cast<UREncoder *>(ObjectJni::get_object(env, encoder));
+        return (jlong) (unsigned long long) (c_encoder->seq_len());
     });
 }
 
 JNIEXPORT jintArray JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1last_1part_1indexes(JNIEnv *env, jclass clazz,
-                                                   jobject encoder) {
+Java_com_bc_ur_BCUR_UREncoder_1last_1part_1indexes(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return nullptr;
     }
 
-    return safetyCall<jintArray>(env, nullptr, [&]() {
-        auto *obj = (UREncoder *) ObjectJni::get(env, encoder);
-        auto result = PrimitiveJni::to_jintArray(env, obj->last_part_indexes());
-        return result;
+    return call<jintArray>(env, nullptr, [&]() {
+        auto c_encoder = static_cast<UREncoder *>(ObjectJni::get_object(env, encoder));
+        return PrimitiveJni::to_jintArray(env, c_encoder->last_part_indexes());
     });
 }
 
@@ -491,26 +463,23 @@ Java_com_bc_ur_BCUR_UREncoder_1is_1complete(JNIEnv *env, jclass clazz, jobject e
         return JNI_FALSE;
     }
 
-    return safetyCall<jboolean>(env, JNI_FALSE, [&]() {
-        auto *obj = (UREncoder *) ObjectJni::get(env, encoder);
-        auto result = (jboolean) (obj->is_complete());
-        return result;
+    return call<jboolean>(env, JNI_FALSE, [&]() {
+        auto c_encoder = static_cast<UREncoder *>(ObjectJni::get_object(env, encoder));
+        return (jboolean) (c_encoder->is_complete());
     });
 
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1is_1single_1part(JNIEnv *env, jclass clazz,
-                                                jobject encoder) {
+Java_com_bc_ur_BCUR_UREncoder_1is_1single_1part(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return JNI_FALSE;
     }
 
-    return safetyCall<jboolean>(env, JNI_FALSE, [&]() {
-        auto *obj = (UREncoder *) ObjectJni::get(env, encoder);
-        auto result = (jboolean) (obj->is_single_part());
-        return result;
+    return call<jboolean>(env, JNI_FALSE, [&]() {
+        auto c_encoder = static_cast<UREncoder *>(ObjectJni::get_object(env, encoder));
+        return (jboolean) (c_encoder->is_single_part());
     });
 
 }
@@ -522,11 +491,10 @@ Java_com_bc_ur_BCUR_UREncoder_1next_1part(JNIEnv *env, jclass clazz, jobject enc
         return nullptr;
     }
 
-    return safetyCall<jstring>(env, nullptr, [&]() {
-        auto *obj = (UREncoder *) ObjectJni::get(env, encoder);
-        auto result = obj->next_part();
-        auto jresult = PrimitiveJni::to_jstring(env, &result);
-        return jresult;
+    return call<jstring>(env, nullptr, [&]() {
+        auto c_encoder = static_cast<UREncoder *>(ObjectJni::get_object(env, encoder));
+        auto result = c_encoder->next_part();
+        return PrimitiveJni::to_jstring(env, &result);
     });
 }
 
@@ -537,20 +505,18 @@ Java_com_bc_ur_BCUR_URDecoder_1decode(JNIEnv *env, jclass clazz, jstring encoded
         return nullptr;
     }
 
-    return safetyCall<jobject>(env, nullptr, [&]() {
-        auto cencoded = PrimitiveJni::copy_std_string(env, encoded);
-        auto cur = URDecoder::decode(cencoded);
-        auto jur = URJni::to_java_UR(env, cur.type(), cur.cbor());
-        return jur;
+    return call<jobject>(env, nullptr, [&]() {
+        auto c_encoded = PrimitiveJni::copy_std_string(env, encoded);
+        auto c_ur = URDecoder::decode(c_encoded);
+        return URJni::to_j_UR(env, c_ur.type(), c_ur.cbor());
     });
 }
 
 JNIEXPORT jobject JNICALL
 Java_com_bc_ur_BCUR_URDecoder_1new(JNIEnv *env, jclass clazz) {
-    return safetyCall<jobject>(env, nullptr, [&]() {
-        auto *decoder = new URDecoder();
-        auto result = ObjectJni::create(env, decoder);
-        return result;
+    return call<jobject>(env, nullptr, [&]() {
+        auto c_decoder = new URDecoder();
+        return ObjectJni::new_object(env, c_decoder);
     });
 }
 
@@ -561,11 +527,10 @@ Java_com_bc_ur_BCUR_URDecoder_1expected_1type(JNIEnv *env, jclass clazz, jobject
         return nullptr;
     }
 
-    return safetyCall<jstring>(env, nullptr, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        auto result = (obj->expected_type()).value();
-        auto jresult = PrimitiveJni::to_jstring(env, &result);
-        return jresult;
+    return call<jstring>(env, nullptr, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        auto result = (c_decoder->expected_type()).value();
+        return PrimitiveJni::to_jstring(env, &result);
     });
 }
 
@@ -576,10 +541,9 @@ Java_com_bc_ur_BCUR_URDecoder_1expected_1part_1count(JNIEnv *env, jclass clazz, 
         return JNI_ERR;
     }
 
-    return safetyCall<jlong>(env, JNI_ERR, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        auto result = (jlong) obj->expected_part_count();
-        return result;
+    return call<jlong>(env, JNI_ERR, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        return (jlong) c_decoder->expected_part_count();
     });
 }
 
@@ -590,11 +554,10 @@ Java_com_bc_ur_BCUR_URDecoder_1received_1part_1indexes(JNIEnv *env, jclass clazz
         return nullptr;
     }
 
-    return safetyCall<jintArray>(env, nullptr, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        const auto &result = obj->received_part_indexes();
-        auto jresult = PrimitiveJni::to_jintArray(env, result);
-        return jresult;
+    return call<jintArray>(env, nullptr, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        const auto &result = c_decoder->received_part_indexes();
+        return PrimitiveJni::to_jintArray(env, result);
     });
 
 }
@@ -606,11 +569,10 @@ Java_com_bc_ur_BCUR_URDecoder_1last_1part_1indexes(JNIEnv *env, jclass clazz, jo
         return nullptr;
     }
 
-    return safetyCall<jintArray>(env, nullptr, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        const auto &result = obj->last_part_indexes();
-        auto jresult = PrimitiveJni::to_jintArray(env, result);
-        return jresult;
+    return call<jintArray>(env, nullptr, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        const auto &result = c_decoder->last_part_indexes();
+        return PrimitiveJni::to_jintArray(env, result);
     });
 }
 
@@ -621,25 +583,24 @@ Java_com_bc_ur_BCUR_URDecoder_1processed_1parts_1count(JNIEnv *env, jclass clazz
         return JNI_ERR;
     }
 
-    return safetyCall<jlong>(env, JNI_ERR, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        auto result = (jlong) obj->processed_parts_count();
-        return result;
+    return call<jlong>(env, JNI_ERR, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        return (jlong) c_decoder->processed_parts_count();
     });
 }
 
 JNIEXPORT jdouble JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1estimated_1percent_1complete(JNIEnv *env, jclass clazz,
+Java_com_bc_ur_BCUR_URDecoder_1estimated_1percent_1complete(JNIEnv *env,
+                                                            jclass clazz,
                                                             jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_ERR;
     }
 
-    return safetyCall<jdouble>(env, JNI_ERR, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        auto result = obj->estimated_percent_complete();
-        return result;
+    return call<jdouble>(env, JNI_ERR, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        return (jdouble) c_decoder->estimated_percent_complete();;
     });
 }
 
@@ -650,10 +611,9 @@ Java_com_bc_ur_BCUR_URDecoder_1is_1success(JNIEnv *env, jclass clazz, jobject de
         return JNI_FALSE;
     }
 
-    return safetyCall<jboolean>(env, JNI_FALSE, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        auto result = (jboolean) obj->is_success();
-        return result;
+    return call<jboolean>(env, JNI_FALSE, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        return (jboolean) c_decoder->is_success();
     });
 }
 
@@ -664,10 +624,9 @@ Java_com_bc_ur_BCUR_URDecoder_1is_1failed(JNIEnv *env, jclass clazz, jobject dec
         return JNI_FALSE;
     }
 
-    return safetyCall<jboolean>(env, JNI_FALSE, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        auto result = (jboolean) obj->is_failure();
-        return result;
+    return call<jboolean>(env, JNI_FALSE, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        return (jboolean) c_decoder->is_failure();
     });
 }
 
@@ -678,10 +637,9 @@ Java_com_bc_ur_BCUR_URDecoder_1is_1complete(JNIEnv *env, jclass clazz, jobject d
         return JNI_FALSE;
     }
 
-    return safetyCall<jboolean>(env, JNI_FALSE, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        auto result = (jboolean) obj->is_complete();
-        return result;
+    return call<jboolean>(env, JNI_FALSE, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        return (jboolean) c_decoder->is_complete();
     });
 }
 
@@ -692,11 +650,10 @@ Java_com_bc_ur_BCUR_URDecoder_1result_1ur(JNIEnv *env, jclass clazz, jobject dec
         return nullptr;
     }
 
-    return safetyCall<jobject>(env, nullptr, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        const auto &cur = obj->result_ur();
-        auto jresult = URJni::to_java_UR(env, cur.type(), cur.cbor());
-        return jresult;
+    return call<jobject>(env, nullptr, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        const auto &c_ur = c_decoder->result_ur();
+        return URJni::to_j_UR(env, c_ur.type(), c_ur.cbor());
     });
 }
 
@@ -707,28 +664,28 @@ Java_com_bc_ur_BCUR_URDecoder_1result_1error(JNIEnv *env, jclass clazz, jobject 
         return nullptr;
     }
 
-    return safetyCall<jthrowable>(env, nullptr, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        const auto &ex = obj->result_error();
+    return call<jthrowable>(env, nullptr, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        const auto &ex = c_decoder->result_error();
         auto name = std::string(typeid(ex).name()) + ":" + ex.what();
-        auto jresult = (jthrowable) IllegalStateExceptionJni::create(env, name);
-        return jresult;
+        return (jthrowable) IllegalStateExceptionJni::new_object(env, name);
     });
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1receive_1part(JNIEnv *env, jclass clazz, jobject decoder,
+Java_com_bc_ur_BCUR_URDecoder_1receive_1part(JNIEnv *env,
+                                             jclass clazz,
+                                             jobject decoder,
                                              jstring s) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_FALSE;
     }
 
-    return safetyCall<jboolean>(env, JNI_FALSE, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
+    return call<jboolean>(env, JNI_FALSE, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
         auto cs = PrimitiveJni::copy_std_string(env, s);
-        auto result = (jboolean) obj->receive_part(cs);
-        return result;
+        return (jboolean) c_decoder->receive_part(cs);
     });
 }
 
@@ -739,9 +696,9 @@ Java_com_bc_ur_BCUR_URDecoder_1dispose(JNIEnv *env, jclass clazz, jobject decode
         return JNI_FALSE;
     }
 
-    return safetyCall(env, JNI_FALSE, [&]() {
-        auto *obj = (URDecoder *) ObjectJni::get(env, decoder);
-        delete obj;
+    return call(env, JNI_FALSE, [&]() {
+        auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
+        delete c_decoder;
         return true;
     });
 }
@@ -753,9 +710,9 @@ Java_com_bc_ur_BCUR_UREncoder_1dispose(JNIEnv *env, jclass clazz, jobject encode
         return JNI_FALSE;
     }
 
-    return safetyCall(env, JNI_FALSE, [&]() {
-        auto *obj = (UREncoder *) ObjectJni::get(env, encoder);
-        delete obj;
+    return call(env, JNI_FALSE, [&]() {
+        auto c_encoder = static_cast<UREncoder *>(ObjectJni::get_object(env, encoder));
+        delete c_encoder;
         return true;
     });
 

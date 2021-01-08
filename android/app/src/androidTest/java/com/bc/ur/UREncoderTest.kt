@@ -11,7 +11,7 @@ class UREncoderTest {
     @Test
     fun testSinglePartEncoder() {
         val ur = UR.create(50, "Wolf")
-        val encoded = UREncoder.encode(ur);
+        val encoded = UREncoder.encode(ur)
         val expected =
             "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
         assertEquals(expected, encoded)
