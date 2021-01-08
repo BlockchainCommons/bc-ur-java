@@ -66,7 +66,7 @@ public class URDecoder extends NativeWrapper {
         return URDecoder_result_ur(ptrObj);
     }
 
-    public IllegalStateException resultError() {
+    public URException resultError() {
         return URDecoder_result_error(ptrObj);
     }
 

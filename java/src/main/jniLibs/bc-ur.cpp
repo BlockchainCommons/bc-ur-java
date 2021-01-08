@@ -163,8 +163,8 @@ public:
     }
 };
 
-// java.lang.IllegalStateException
-class IllegalStateExceptionJni : public JavaException<IllegalStateExceptionJni> {
+// com.bc.ur.URException
+class URExceptionJni : public JavaException<URExceptionJni> {
 private:
     static jmethodID get_constructor_mid(JNIEnv *env) {
         jclass jclazz = JavaClass::get_jclass(env, get_class_name().c_str());
@@ -178,17 +178,9 @@ private:
 
 public:
     static std::string get_class_name() {
-        return "java/lang/IllegalStateException";
+        return "com/bc/ur/URException";
     }
 
-    /**
-     * Create and throw a Java IllegalStateException with the provided error message
-     *
-     * @param env A pointer to the Java environment
-     * @param s The error message
-     *
-     * @return true if an exception was thrown, false otherwise
-     */
     static bool throw_new(JNIEnv *env, const std::string &s) {
         return JavaException::throw_new(env, s);
     }
@@ -310,7 +302,7 @@ static T call(JNIEnv *env, T errorValReturn, CALLABLE func) {
     try {
         return func();
     } catch (const std::exception &e) {
-        IllegalStateExceptionJni::throw_new(env, e);
+        URExceptionJni::throw_new(env, e);
         return errorValReturn;
     }
 }
@@ -672,7 +664,7 @@ Java_com_bc_ur_URJni_URDecoder_1result_1error(JNIEnv *env, jclass clazz, jobject
         auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
         const auto &ex = c_decoder->result_error();
         auto name = std::string(typeid(ex).name()) + ":" + ex.what();
-        return (jthrowable) IllegalStateExceptionJni::new_object(env, name);
+        return (jthrowable) URExceptionJni::new_object(env, name);
     });
 }
 

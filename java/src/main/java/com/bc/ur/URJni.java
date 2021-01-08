@@ -60,7 +60,7 @@ class URJni {
 
     static native UR URDecoder_result_ur(NativeWrapper.JniObject decoder);
 
-    static native IllegalStateException URDecoder_result_error(NativeWrapper.JniObject decoder);
+    static native URException URDecoder_result_error(NativeWrapper.JniObject decoder);
 
     static native boolean URDecoder_receive_part(NativeWrapper.JniObject decoder, String s);
 

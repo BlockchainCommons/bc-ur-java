@@ -39,8 +39,8 @@ class URDecoderTest {
                 assertEquals(ur.type, resultUR.type)
                 assertTrue(ur.cbor.toTypedArray().contentDeepEquals(resultUR.cbor.toTypedArray()))
 
-                // make sure getting resultError throw IllegalStateException
-                assertThrows<IllegalStateException>("test failed due to checking resultError") { d.resultError() }
+                // make sure getting resultError throw URException
+                assertThrows<URException>("test failed due to checking resultError") { d.resultError() }
             }
         }
 
@@ -60,7 +60,7 @@ class URDecoderTest {
             "ur:ur:ur",
             "uf:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
         ).forEach {
-            assertThrows<IllegalStateException>("test failed due to $it") { URDecoder.decode(it) }
+            assertThrows<URException>("test failed due to $it") { URDecoder.decode(it) }
         }
 
     }

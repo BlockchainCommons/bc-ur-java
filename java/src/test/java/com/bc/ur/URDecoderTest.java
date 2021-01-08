@@ -19,11 +19,11 @@ public class URDecoderTest {
     @Test
     public void testDecodeSinglePart() {
         UR expectedUR = UR.create(50, "Wolf");
-        String encoded =
-                "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch";
+        String encoded = "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch";
         UR ur = URDecoder.decode(encoded);
         assertEquals(expectedUR.getType(), ur.getType());
-        assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(expectedUR.getCbor()), TestUtils.toTypedArray(ur.getCbor())));
+        assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(expectedUR.getCbor()),
+                                     TestUtils.toTypedArray(ur.getCbor())));
     }
 
     @Test
@@ -45,30 +45,35 @@ public class URDecoderTest {
             // make sure resultUR return exact UR entered before
             UR resultUR = decoder.resultUR();
             assertEquals(ur.getType(), resultUR.getType());
-            assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(ur.getCbor()), TestUtils.toTypedArray(resultUR.getCbor())));
+            assertTrue(Arrays.deepEquals(TestUtils.toTypedArray(ur.getCbor()),
+                                         TestUtils.toTypedArray(resultUR.getCbor())));
 
-            // make sure getting resultError throw IllegalStateException
-            assertThrows("test failed due to checking resultError", IllegalStateException.class, decoder::resultError);
+            // make sure getting resultError throw URException
+            assertThrows("test failed due to checking resultError",
+                         URException.class,
+                         decoder::resultError);
         }
 
         // make sure encoder/decoder is closed
         assertTrue(refEncoder.isClosed());
         assertTrue(refDecoder.isClosed());
 
-        assertThrows("test failed since encoder has not been disposed", IllegalArgumentException.class, refEncoder::nextPart);
-        assertThrows("test failed since decoder has not been disposed", IllegalArgumentException.class, refDecoder::expectedType);
+        assertThrows("test failed since encoder has not been disposed",
+                     IllegalArgumentException.class,
+                     refEncoder::nextPart);
+        assertThrows("test failed since decoder has not been disposed",
+                     IllegalArgumentException.class,
+                     refDecoder::expectedType);
     }
 
     @Test
     public void testDecodeError() {
-        String[] invalidData = new String[]{
-                "",
-                "ur:bytes/",
-                "ur:ur:ur",
-                "uf:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
-        };
+        String[] invalidData = new String[]{"",
+                                            "ur:bytes/",
+                                            "ur:ur:ur",
+                                            "uf:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"};
         for (String it : invalidData) {
-            assertThrows("test failed due to " + it, IllegalStateException.class, () -> URDecoder.decode(it));
+            assertThrows("test failed due to " + it, URException.class, () -> URDecoder.decode(it));
         }
     }
 }
