@@ -535,7 +535,11 @@ Java_com_bc_ur_URJni_URDecoder_1expected_1part_1count(JNIEnv *env, jclass clazz,
 
     return call<jlong>(env, JNI_ERR, [&]() {
         auto c_decoder = static_cast<URDecoder *>(ObjectJni::get_object(env, decoder));
-        return (jlong) c_decoder->expected_part_count();
+        try {
+            return (jlong) c_decoder->expected_part_count();
+        } catch (const std::bad_optional_access &e) {
+            return (jlong) -1;
+        }
     });
 }
 

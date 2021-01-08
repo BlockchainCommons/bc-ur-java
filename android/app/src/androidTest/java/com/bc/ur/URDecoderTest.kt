@@ -1,8 +1,7 @@
 package com.bc.ur
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -29,10 +28,22 @@ class URDecoderTest {
 
         encoder.use { e ->
             decoder.use { d ->
+
+                var processPartCount = 0L
                 do {
+                    assertTrue(d.estimatedPercentComplete() < 1.0)
+
                     val part = e.nextPart()
                     d.receivePart(part)
+
+                    assertEquals(33L, d.expectedPartCount())
+                    assertEquals(++processPartCount, d.processedPartsCount())
                 } while (!d.isComplete)
+
+                assertTrue(d.isSuccess)
+                assertFalse(d.isFailed)
+                assertEquals(1.0, d.estimatedPercentComplete(), 1.0)
+
 
                 // make sure resultUR return exact UR entered before
                 val resultUR = d.resultUR()

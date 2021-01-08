@@ -10,6 +10,7 @@ import java.util.Arrays;
 
 import static com.bc.ur.util.TestUtils.assertThrows;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 
@@ -37,10 +38,22 @@ public class URDecoderTest {
              URDecoder decoder = new URDecoder()) {
             refEncoder = encoder;
             refDecoder = decoder;
+
+            long processPartCount = 0L;
+
             do {
+                assertTrue(decoder.estimatedPercentComplete() < 1.0);
+
                 String part = encoder.nextPart();
                 decoder.receivePart(part);
+
+                assertEquals(33L, decoder.expectedPartCount());
+                assertEquals(++processPartCount, decoder.processedPartsCount());
             } while (!decoder.isComplete());
+
+            assertTrue(decoder.isSuccess());
+            assertFalse(decoder.isFailed());
+            assertEquals(1.0, decoder.estimatedPercentComplete(), 1.0);
 
             // make sure resultUR return exact UR entered before
             UR resultUR = decoder.resultUR();
