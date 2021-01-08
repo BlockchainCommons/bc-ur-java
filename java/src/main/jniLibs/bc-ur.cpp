@@ -320,10 +320,10 @@ extern "C" {
 #endif
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_UR_1new_1from_1len_1seed_1string(JNIEnv *env,
-                                                     jclass clazz,
-                                                     jint len,
-                                                     jstring seed) {
+Java_com_bc_ur_URJni_UR_1new_1from_1len_1seed_1string(JNIEnv *env,
+                                                      jclass clazz,
+                                                      jint len,
+                                                      jstring seed) {
     if (seed == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Seed is null");
         return nullptr;
@@ -340,10 +340,10 @@ Java_com_bc_ur_BCUR_UR_1new_1from_1len_1seed_1string(JNIEnv *env,
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_UR_1new_1from_1message(JNIEnv *env,
-                                           jclass clazz,
-                                           jstring type,
-                                           jbyteArray message) {
+Java_com_bc_ur_URJni_UR_1new_1from_1message(JNIEnv *env,
+                                            jclass clazz,
+                                            jstring type,
+                                            jbyteArray message) {
     if (message == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java message is null");
         return nullptr;
@@ -364,7 +364,7 @@ Java_com_bc_ur_BCUR_UR_1new_1from_1message(JNIEnv *env,
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_com_bc_ur_BCUR_UR_1get_1message(JNIEnv *env, jclass clazz, jobject ur) {
+Java_com_bc_ur_URJni_UR_1get_1message(JNIEnv *env, jclass clazz, jobject ur) {
     if (ur == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java UR is null");
         return nullptr;
@@ -382,7 +382,7 @@ Java_com_bc_ur_BCUR_UR_1get_1message(JNIEnv *env, jclass clazz, jobject ur) {
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1encode(JNIEnv *env, jclass clazz, jobject ur) {
+Java_com_bc_ur_URJni_UREncoder_1encode(JNIEnv *env, jclass clazz, jobject ur) {
     if (ur == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java UR is null");
         return nullptr;
@@ -396,12 +396,12 @@ Java_com_bc_ur_BCUR_UREncoder_1encode(JNIEnv *env, jclass clazz, jobject ur) {
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1new(JNIEnv *env,
-                                   jclass clazz,
-                                   jobject ur,
-                                   jint max_fragment_len,
-                                   jint first_seq_num,
-                                   jint min_fragment_len) {
+Java_com_bc_ur_URJni_UREncoder_1new(JNIEnv *env,
+                                    jclass clazz,
+                                    jobject ur,
+                                    jint max_fragment_len,
+                                    jint first_seq_num,
+                                    jint min_fragment_len) {
     if (ur == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java UR is null");
         return nullptr;
@@ -418,7 +418,7 @@ Java_com_bc_ur_BCUR_UREncoder_1new(JNIEnv *env,
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1seq_1num(JNIEnv *env, jclass clazz, jobject encoder) {
+Java_com_bc_ur_URJni_UREncoder_1seq_1num(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return JNI_ERR;
@@ -431,7 +431,7 @@ Java_com_bc_ur_BCUR_UREncoder_1seq_1num(JNIEnv *env, jclass clazz, jobject encod
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1seq_1len(JNIEnv *env, jclass clazz, jobject encoder) {
+Java_com_bc_ur_URJni_UREncoder_1seq_1len(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return JNI_ERR;
@@ -444,7 +444,7 @@ Java_com_bc_ur_BCUR_UREncoder_1seq_1len(JNIEnv *env, jclass clazz, jobject encod
 }
 
 JNIEXPORT jintArray JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1last_1part_1indexes(JNIEnv *env, jclass clazz, jobject encoder) {
+Java_com_bc_ur_URJni_UREncoder_1last_1part_1indexes(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return nullptr;
@@ -457,7 +457,7 @@ Java_com_bc_ur_BCUR_UREncoder_1last_1part_1indexes(JNIEnv *env, jclass clazz, jo
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1is_1complete(JNIEnv *env, jclass clazz, jobject encoder) {
+Java_com_bc_ur_URJni_UREncoder_1is_1complete(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return JNI_FALSE;
@@ -471,7 +471,7 @@ Java_com_bc_ur_BCUR_UREncoder_1is_1complete(JNIEnv *env, jclass clazz, jobject e
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1is_1single_1part(JNIEnv *env, jclass clazz, jobject encoder) {
+Java_com_bc_ur_URJni_UREncoder_1is_1single_1part(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return JNI_FALSE;
@@ -485,7 +485,7 @@ Java_com_bc_ur_BCUR_UREncoder_1is_1single_1part(JNIEnv *env, jclass clazz, jobje
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1next_1part(JNIEnv *env, jclass clazz, jobject encoder) {
+Java_com_bc_ur_URJni_UREncoder_1next_1part(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return nullptr;
@@ -499,7 +499,7 @@ Java_com_bc_ur_BCUR_UREncoder_1next_1part(JNIEnv *env, jclass clazz, jobject enc
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1decode(JNIEnv *env, jclass clazz, jstring encoded) {
+Java_com_bc_ur_URJni_URDecoder_1decode(JNIEnv *env, jclass clazz, jstring encoded) {
     if (encoded == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return nullptr;
@@ -513,7 +513,7 @@ Java_com_bc_ur_BCUR_URDecoder_1decode(JNIEnv *env, jclass clazz, jstring encoded
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1new(JNIEnv *env, jclass clazz) {
+Java_com_bc_ur_URJni_URDecoder_1new(JNIEnv *env, jclass clazz) {
     return call<jobject>(env, nullptr, [&]() {
         auto c_decoder = new URDecoder();
         return ObjectJni::new_object(env, c_decoder);
@@ -521,7 +521,7 @@ Java_com_bc_ur_BCUR_URDecoder_1new(JNIEnv *env, jclass clazz) {
 }
 
 JNIEXPORT jstring JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1expected_1type(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1expected_1type(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return nullptr;
@@ -535,7 +535,7 @@ Java_com_bc_ur_BCUR_URDecoder_1expected_1type(JNIEnv *env, jclass clazz, jobject
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1expected_1part_1count(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1expected_1part_1count(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_ERR;
@@ -548,7 +548,9 @@ Java_com_bc_ur_BCUR_URDecoder_1expected_1part_1count(JNIEnv *env, jclass clazz, 
 }
 
 JNIEXPORT jintArray JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1received_1part_1indexes(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1received_1part_1indexes(JNIEnv *env,
+                                                        jclass clazz,
+                                                        jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return nullptr;
@@ -563,7 +565,7 @@ Java_com_bc_ur_BCUR_URDecoder_1received_1part_1indexes(JNIEnv *env, jclass clazz
 }
 
 JNIEXPORT jintArray JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1last_1part_1indexes(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1last_1part_1indexes(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return nullptr;
@@ -577,7 +579,9 @@ Java_com_bc_ur_BCUR_URDecoder_1last_1part_1indexes(JNIEnv *env, jclass clazz, jo
 }
 
 JNIEXPORT jlong JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1processed_1parts_1count(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1processed_1parts_1count(JNIEnv *env,
+                                                        jclass clazz,
+                                                        jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_ERR;
@@ -590,9 +594,9 @@ Java_com_bc_ur_BCUR_URDecoder_1processed_1parts_1count(JNIEnv *env, jclass clazz
 }
 
 JNIEXPORT jdouble JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1estimated_1percent_1complete(JNIEnv *env,
-                                                            jclass clazz,
-                                                            jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1estimated_1percent_1complete(JNIEnv *env,
+                                                             jclass clazz,
+                                                             jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_ERR;
@@ -605,7 +609,7 @@ Java_com_bc_ur_BCUR_URDecoder_1estimated_1percent_1complete(JNIEnv *env,
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1is_1success(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1is_1success(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_FALSE;
@@ -618,7 +622,7 @@ Java_com_bc_ur_BCUR_URDecoder_1is_1success(JNIEnv *env, jclass clazz, jobject de
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1is_1failed(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1is_1failed(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_FALSE;
@@ -631,7 +635,7 @@ Java_com_bc_ur_BCUR_URDecoder_1is_1failed(JNIEnv *env, jclass clazz, jobject dec
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1is_1complete(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1is_1complete(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_FALSE;
@@ -644,7 +648,7 @@ Java_com_bc_ur_BCUR_URDecoder_1is_1complete(JNIEnv *env, jclass clazz, jobject d
 }
 
 JNIEXPORT jobject JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1result_1ur(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1result_1ur(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return nullptr;
@@ -658,7 +662,7 @@ Java_com_bc_ur_BCUR_URDecoder_1result_1ur(JNIEnv *env, jclass clazz, jobject dec
 }
 
 JNIEXPORT jthrowable JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1result_1error(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1result_1error(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return nullptr;
@@ -673,10 +677,10 @@ Java_com_bc_ur_BCUR_URDecoder_1result_1error(JNIEnv *env, jclass clazz, jobject 
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1receive_1part(JNIEnv *env,
-                                             jclass clazz,
-                                             jobject decoder,
-                                             jstring s) {
+Java_com_bc_ur_URJni_URDecoder_1receive_1part(JNIEnv *env,
+                                              jclass clazz,
+                                              jobject decoder,
+                                              jstring s) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_FALSE;
@@ -690,7 +694,7 @@ Java_com_bc_ur_BCUR_URDecoder_1receive_1part(JNIEnv *env,
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_URDecoder_1dispose(JNIEnv *env, jclass clazz, jobject decoder) {
+Java_com_bc_ur_URJni_URDecoder_1dispose(JNIEnv *env, jclass clazz, jobject decoder) {
     if (decoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Decoder is null");
         return JNI_FALSE;
@@ -704,7 +708,7 @@ Java_com_bc_ur_BCUR_URDecoder_1dispose(JNIEnv *env, jclass clazz, jobject decode
 }
 
 JNIEXPORT jboolean JNICALL
-Java_com_bc_ur_BCUR_UREncoder_1dispose(JNIEnv *env, jclass clazz, jobject encoder) {
+Java_com_bc_ur_URJni_UREncoder_1dispose(JNIEnv *env, jclass clazz, jobject encoder) {
     if (encoder == nullptr) {
         IllegalArgumentExceptionJni::throw_new(env, "Error: Java Encoder is null");
         return JNI_FALSE;

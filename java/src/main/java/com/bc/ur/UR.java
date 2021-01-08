@@ -1,13 +1,17 @@
 package com.bc.ur;
 
+import static com.bc.ur.URJni.UR_get_message;
+import static com.bc.ur.URJni.UR_new_from_len_seed_string;
+import static com.bc.ur.URJni.UR_new_from_message;
+
 public class UR {
 
     public static UR create(int len, String seed) {
-        return BCUR.UR_new_from_len_seed_string(len, seed);
+        return UR_new_from_len_seed_string(len, seed);
     }
 
     public static UR create(String type, byte[] message) {
-        return BCUR.UR_new_from_message(type, message);
+        return UR_new_from_message(type, message);
     }
 
     public static UR create(byte[] message) {
@@ -32,6 +36,6 @@ public class UR {
     }
 
     public byte[] getMessage() {
-        return BCUR.UR_get_message(this);
+        return UR_get_message(this);
     }
 }

@@ -1,6 +1,6 @@
 package com.bc.ur;
 
-class BCUR {
+class URJni {
 
     static {
         System.loadLibrary("bc-ur");
@@ -16,7 +16,10 @@ class BCUR {
     // UREncoder
     static native String UREncoder_encode(UR ur);
 
-    static native NativeWrapper.JniObject UREncoder_new(UR ur, int maxFragmentLen, int firstSeqNum, int minFragmentLen);
+    static native NativeWrapper.JniObject UREncoder_new(UR ur,
+                                                        int maxFragmentLen,
+                                                        int firstSeqNum,
+                                                        int minFragmentLen);
 
     static native long UREncoder_seq_num(NativeWrapper.JniObject encoder);
 
