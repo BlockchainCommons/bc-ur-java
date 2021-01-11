@@ -1,6 +1,7 @@
 package com.bc.ur
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.bc.ur.URJni.UR_new_from_len_seed_string
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -10,7 +11,7 @@ class UREncoderTest {
 
     @Test
     fun testSinglePartEncoder() {
-        val ur = UR.create(50, "Wolf")
+        val ur = UR_new_from_len_seed_string(50, "Wolf")
         val encoded = UREncoder.encode(ur)
         val expected =
             "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
@@ -19,7 +20,7 @@ class UREncoderTest {
 
     @Test
     fun testMultiPartEncoder() {
-        val ur = UR.create(256, "Wolf")
+        val ur = UR_new_from_len_seed_string(256, "Wolf")
         val encoder = UREncoder(ur, 30)
         encoder.use { e ->
             val parts = mutableListOf<String>()

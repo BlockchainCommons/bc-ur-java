@@ -1,6 +1,7 @@
 package com.bc.ur
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.bc.ur.URJni.UR_new_from_len_seed_string
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -11,7 +12,7 @@ class URDecoderTest {
 
     @Test
     fun testDecodeSinglePart() {
-        val expectedUR = UR.create(50, "Wolf")
+        val expectedUR = UR_new_from_len_seed_string(50, "Wolf")
         val encoded =
             "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
         val ur = URDecoder.decode(encoded)
@@ -21,7 +22,7 @@ class URDecoderTest {
 
     @Test
     fun testDecodeMultiParts() {
-        val ur = UR.create(32767, "Wolf")
+        val ur = UR_new_from_len_seed_string(32767, "Wolf")
 
         val encoder = UREncoder(ur, 1000, 100, 10)
         val decoder = URDecoder()

@@ -8,6 +8,7 @@ import org.junit.runners.JUnit4;
 
 import java.util.Arrays;
 
+import static com.bc.ur.URJni.UR_new_from_len_seed_string;
 import static com.bc.ur.util.TestUtils.assertThrows;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -19,7 +20,7 @@ public class URDecoderTest {
 
     @Test
     public void testDecodeSinglePart() {
-        UR expectedUR = UR.create(50, "Wolf");
+        UR expectedUR = UR_new_from_len_seed_string(50, "Wolf");
         String encoded = "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch";
         UR ur = URDecoder.decode(encoded);
         assertEquals(expectedUR.getType(), ur.getType());
@@ -29,7 +30,7 @@ public class URDecoderTest {
 
     @Test
     public void testDecodeMultiParts() throws Exception {
-        UR ur = UR.create(32767, "Wolf");
+        UR ur = UR_new_from_len_seed_string(32767, "Wolf");
 
         UREncoder refEncoder;
         URDecoder refDecoder;

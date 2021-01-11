@@ -6,10 +6,6 @@ import static com.bc.ur.URJni.UR_new_from_message;
 
 public class UR {
 
-    public static UR create(int len, String seed) {
-        return UR_new_from_len_seed_string(len, seed);
-    }
-
     public static UR create(String type, byte[] message) {
         return UR_new_from_message(type, message);
     }
