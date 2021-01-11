@@ -14,22 +14,24 @@ The original source written in C++ can be found [here](https://github.com/Blockc
 ## Usage Instructions
 Encode single part
 ```java
-UR ur = UR.create(50, "Wolf");
+byte[] bytes = hex2Bytes("916ec65cf77cadf55cd7f9cda1a13026ddd42e905b77adc36e4f2d3ccba44f7f4f2de44f42d84c374a0e149136f25b018");
+UR ur = UR.create(bytes);
 String encoded = UREncoder.encode(ur); // "ur:bytes/hdeymejtswhhylkepmykhhtsytsnoyoyaxaedsuttydmmhhpktpmsrjtgwdpfnsboxgwlbaawzuefywkdplrsrjynbvygabwjldapfcsdwkbrkch"
 ```
 
 Encode multi parts
 ```java
-UR ur = UR.create(256, "Wolf");
+byte[] bytes = hex2Bytes("916ec65cf77cadf55cd7f9cda1a13026ddd42e905b77adc36e4f2d3ccba44f7f4f2de44f42d84c374a0e149136f25b018");
+UR ur = UR.create(bytes);
 
 // try-with-resource to make sure encoder is closed as expectation to avoid memory leak
-try (UREncoder encoder = new UREncoder(ur, 30, 0, 10)) {
+try (UREncoder encoder = new UREncoder(ur, 30)) {
     int segNum = (int) encoder.getSeqNum();
     String[] parts = new String[segNum];
     for (int i = 0; i < segNum; i++) {
         parts[i] = encoder.nextPart();
     }
-} catch (Exception e) {
+} catch (URException e) {
     // error goes here
 }
 ```
@@ -43,10 +45,11 @@ UR ur = URDecoder.decode(encoded);
 Decode multi parts
 ```java
 // simulate encoder/decoder working together
-UR ur = UR.create(32767, "Wolf");
+byte[] bytes = hex2Bytes("916ec65cf77cadf55cd7f9cda1a13026ddd42e905b77adc36e4f2d3ccba44f7f4f2de44f42d84c374a0e149136f25b018");
+UR ur = UR.create(bytes);
 
 // try-with-resource to make sure encoder is closed as expectation to avoid memory leak
-try (UREncoder encoder = new UREncoder(ur, 1000, 100, 10);
+try (UREncoder encoder = new UREncoder(ur, 30);
     URDecoder decoder = new URDecoder()) {
     do {
         String part = encoder.nextPart();
@@ -55,7 +58,7 @@ try (UREncoder encoder = new UREncoder(ur, 1000, 100, 10);
 
     // received UR after decoding
     UR resultUR = decoder.resultUR();
-} catch (Exception e) {
+} catch (URException e) {
     // error goes here
 }
 ```
