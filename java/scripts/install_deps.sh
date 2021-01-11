@@ -44,11 +44,11 @@ if ! is_osx; then
     ./llvm.sh 10
     rm llvm.sh
 
-    deps=(libc++-10-dev libc++abi-10-dev)
-    for dep in "${deps[@]}"; do
-      check_dep "$dep"
-    done
-
     popd
   fi
 fi
+
+deps=(libc++-10-dev libc++abi-10-dev)
+for dep in "${deps[@]}"; do
+  check_dep "$dep"
+done

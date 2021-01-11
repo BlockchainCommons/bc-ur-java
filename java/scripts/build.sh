@@ -8,9 +8,6 @@ echo "${JAVA_HOME:?}"
 echo "${CC:?}"
 echo "${CXX:?}"
 
-echo 'Cleanup...'
-./scripts/cleanup.sh
-
 ROOT_DIR=$(
   cd ..
   pwd
@@ -23,24 +20,45 @@ if ! is_osx; then
   LIB_NAME="libbc-ur.so"
   JNI_MD_DIR="linux"
 fi
+BUILD_LOG_DIR="build/log"
+BUILD_LOG="$BUILD_LOG_DIR/$(date +%s)-log.txt"
 
-# Install base bc-ur lib
-pushd "$ROOT_DIR"/deps/bc-ur
-./configure
-make clean
-make CPPFLAGS=-fPIC check
-popd
+clean_up() {
+  ./scripts/cleanup.sh
+}
 
-# Install jni bc-ur lib
-echo "Building $LIB_NAME..."
-mkdir -p $OUT_DIR
-$CXX \
-  -I"$JAVA_HOME/include" \
-  -I"$JAVA_HOME/include/$JNI_MD_DIR" \
-  -I"$ROOT_DIR/deps/bc-ur/src" \
-  -fexceptions -frtti -std=c++17 -stdlib=libc++ -shared -fPIC \
-  src/main/jniLibs/bc-ur.cpp \
-  "$ROOT_DIR"/deps/bc-ur/src/libbc-ur.a \
-  -o \
-  $OUT_DIR/$LIB_NAME
-echo "Done. Checkout the release file at $OUT_DIR/$LIB_NAME"
+build_bc_crypto_base() {
+  pushd "$ROOT_DIR"/deps/bc-ur
+  ./configure
+  make clean
+  make CPPFLAGS=-fPIC check
+  popd
+}
+
+build_jni() {
+  mkdir -p $OUT_DIR
+  $CXX \
+    -I"$JAVA_HOME/include" \
+    -I"$JAVA_HOME/include/$JNI_MD_DIR" \
+    -I"$ROOT_DIR/deps/bc-ur/src" \
+    -fexceptions -frtti -std=c++17 -stdlib=libc++ -shared -fPIC \
+    src/main/jniLibs/bc-ur.cpp \
+    "$ROOT_DIR"/deps/bc-ur/src/libbc-ur.a \
+    -o \
+    $OUT_DIR/$LIB_NAME
+}
+
+(
+  mkdir -p ${BUILD_LOG_DIR}
+  echo -n >"${BUILD_LOG}"
+
+  echo 'Cleanup...'
+  clean_up
+
+  echo 'Building bc-crypto-base...'
+  build_bc_crypto_base
+
+  echo "Building $LIB_NAME..."
+  build_jni
+  echo "Done. Checkout the release file at $OUT_DIR/$LIB_NAME"
+) | tee "${BUILD_LOG}"
