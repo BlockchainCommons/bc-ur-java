@@ -101,5 +101,6 @@ output.json
 .idea
 .DS_Store
 java/src/main/libs
+*/log/*
 
 # End of Specific for project

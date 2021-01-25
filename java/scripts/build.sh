@@ -27,7 +27,7 @@ clean_up() {
   ./scripts/cleanup.sh
 }
 
-build_bc_crypto_base() {
+build_bc_ur() {
   pushd "$ROOT_DIR"/deps/bc-ur
   ./configure
   make clean
@@ -55,8 +55,8 @@ build_jni() {
   echo 'Cleanup...'
   clean_up
 
-  echo 'Building bc-crypto-base...'
-  build_bc_crypto_base
+  echo 'Building bc-ur...'
+  build_bc_ur
 
   echo "Building $LIB_NAME..."
   build_jni
