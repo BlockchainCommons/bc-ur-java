@@ -44,12 +44,12 @@ $ sudo apt-get install libc++-10-dev libc++abi-10-dev
 
 ### Testing
 ```console
-$ JAVA_HOME="your/java/home" ANDROID_SDK_ROOT="your/android-sdk/home" sudo -E ./scripts/build.sh --test-only
+$ JAVA_HOME="your/java/home" ANDROID_SDK_ROOT="your/android-sdk/home" ./scripts/build.sh --test-only
 ```
 
 ### Bundling
 ```console
-$ JAVA_HOME="your/java/home" ANDROID_SDK_ROOT="your/android-sdk/home" sudo -E ./scripts/build.sh --bundle-only
+$ JAVA_HOME="your/java/home" ANDROID_SDK_ROOT="your/android-sdk/home" ./scripts/build.sh --bundle-only
 ```
 
 > The `app-release.aar` file would be found in `app/build/outputs/aar`. You can compile it as a library in your project.
